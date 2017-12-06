@@ -19,7 +19,14 @@ echo_on.
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-
+%Priorités
+priority(clash,1).
+priority(check,1).
+priority(rename,2).
+priority(simplify,2).
+priority(orient,3).
+priority(decompose,4).
+priority(expand,5).
 
 % PREDICATS
 
