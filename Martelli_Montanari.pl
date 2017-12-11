@@ -19,14 +19,11 @@ echo_on.
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-%Priorités 
-weight(clash,5).
-weight(check,5).
-weight(rename,4).
-weight(simplify,4).
-weight(orient,3).
-weight(decompose,2).
-weight(expand,1).
+
+
+
+
+
 
 % PREDICATS
 
@@ -233,28 +230,124 @@ decomposition(X, Y, N, Q) :-
 
 %/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+% Différenciation des Strategies
+%Premier ici
+unifie([X|T], Strategie) :-
+        Strategie == premier,
+        choix_premier([X|T]).
+        
+%Pondere ici
+unifie([X|T], Strategie) :-
+        Strategie == pondere,
+        choix_pondere([X|T]).
+
+%TODO TRAITER LE cas ou aucun choix n'est bon
+
 /* Predicat unifie(P) :
 où P est un système d’équations à résoudre représenté sous la forme d’une liste [S1 ?= T1,...,SN ?= TN]. */
 
+/************************************** STRATEGIE CHOIX PREMIER *************************************************/
 
-unifie([X|T]) :-
-        write("system : "),
+% Unifie avec une stratégie de base : prendre les équations dans l'ordre de lecture de gauche à droite.
+choix_premier([X|T]) :-
+         write("system : "),
         print([X|T]),
         nl,
         rule(X, R),
         reduce(R, X, T, Q),
-        unifie(Q).
-        
+        choix_premier(Q).
         
 % Cas d'arret
-unifie([]).
+choix_premier([]) :-
+	write('Système d\'equation unifiable.'),
+        !.
+
+/************************************ STRATEGIE CHOIX PONDERE ****************************************************/
+%Définition des différents poids matérialisant les priorités entre les différentes opérations
+weight(clash,5).
+weight(check,5).
+weight(rename,4).
+weight(simplify,4).
+weight(orient,3).
+weight(decompose,2).
+weight(expand,1).
 
 
+choix_pondere(X) :-
+        maxWeight(X, R, E),
+	extract(X, E, Res),
+	reduce(R, E, Res, Q),
+	choix_pondere(Q).
 
+%Cas d'arrêt
+choix_pondere([]) :-
+	write('Système d\'equation unifiable.'),
+	!.
+	
+%Si P1 >= P2 On cherche à récupérer celle qui à le poids le plus fort.
+maxWeight([X,Y|P], R, E) :-
+        rule(X,R1),
+        weight(R1,P1),
+        rule(Y,R2),
+        weight(R2,P2),
+        P1>=P2,
+        !,
+	maxWeight([X|P], R, E).
 
+%Si P1 =< P2
+maxWeight([X,Y|P], R, E) :-
+        rule(X,R1),
+	weight(R1,P1),
+	rule(Y,R2),
+	weight(R2,P2),
+	P1=<P2,
+	!,
+	maxWeight([Y|P], R, E).
+	
+%Cas d'arrêt
+maxWeight([X], R, X) :-
+        rule(X,R),
+	!.
+	
+	
+%Récupère la bonne équation à traiter.
+extract([T|R],X,Res) :-
+        X == T,
+	Res = R,
+	!.
 
+extract([T|R],X,Res) :-
+        X \== T,
+        extract(R,X,Res).
+	
+%Cas d'arrêt
+extract([],_,[]) :-
+        !.
 
 %/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+%DESACTIVATION DE LA TRACE
+trace_unif(P,Strategie) :-
+        set_echo,
+	unifie(P,Strategie),
+	clr_echo,
+	!.
+%ACTIVATION DE LA TRACE
+unif(P,Strategie) :-
+        clr_echo,
+	unifie(P,Strategie),
+	clr_echo,
+	!.
+%Traitement choix user trace == non
+trace(SystEq,Strategie,Trace) :-
+        Trace == oui,
+	trace_unif(SystEq,Strategie), 
+	!.
+%Traitement choix user trace == oui
+trace(SystEq,Strategie,Trace) :-
+        Trace == non,
+        unif(SystEq,Strategie),
+	!.
+%TODO MAUVAIS CHOIX
 
 
 run :-
@@ -262,6 +355,19 @@ run :-
     echo('\nAlgorithme d’unification de Martelli-Montanari vu avec M. Galmiche'),
     begin.
     
-begin :-
-    echo('\n\nPour lancer, entrez unifie(formule)'),
-    echo('\nExemple : unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).').
+begin:-
+        write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(Z,h(a)), Z ?= g(X)].\n\n'),
+	write('>> Systeme d\'equation à unifier : '),
+	read(SystEq),
+	write('\n\nQuelle stratégie voulez-vous utiliser ? ( \'premier.\' OU \'pondere.\')\n'),
+	write('>> Stratégie : '),
+	read(Strategie),
+	%write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
+	%write('>> Trace : '),
+	%read(Trace),
+	write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
+	write('>> Trace : '),
+	read(Trace),
+	write('\n'),
+	trace(SystEq,Strategie,Trace),
+	!.
