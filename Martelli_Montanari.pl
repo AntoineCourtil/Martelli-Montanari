@@ -15,7 +15,6 @@ clr_echo :- retractall(echo_on).
 % echo(T): si le flag echo_on est positionné, echo(T) affiche le terme T
 %          sinon, echo(T) réussit simplement en ne faisant rien.
 
-echo_on.
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
@@ -79,8 +78,8 @@ rule(X ?= Y, clash) :-
         functor(X,A,_),
         functor(Y,B,_),
         A \= B,
-        write("clash : "),
-        print(X ?= Y),
+        echo("clash : "),
+        echo(X ?= Y),
         nl,
         !.
         
@@ -91,16 +90,16 @@ rule(X ?= Y, clash) :-
         functor(X,_,N),
         functor(Y,_,M),
         N \= M,
-        write("clash : "),
-        print(X ?= Y),
+        echo("clash : "),
+        echo(X ?= Y),
         nl,
         !.
         
         
 rule(X ?= Y, occur_check) :-
         var(X),
-        write("occur check : "),
-        print(X ?= Y),
+        echo("occur check : "),
+        echo(X ?= Y),
         nl,
         not(occur_check(X, Y)),
         fail.
@@ -159,16 +158,16 @@ var_into_term(V, T, A) :-
 Transforme le système d’équations P en le système d’équations Q par application de la règle de transformation R à l’équation E. */
 
 reduce(rename, X ?= Y, P, Q) :-
-        write("rename : "),
-        print(X ?= Y), nl,
+        echo("rename : "),
+        echo(X ?= Y), nl,
         Q = P,
         X = Y,
         !.
         
         
 reduce(simplify, X ?= Y, P, Q) :-
-        write("simplify : "),
-        print(X ?= Y),
+        echo("simplify : "),
+        echo(X ?= Y),
         nl,
         Q = P,
         X = Y,
@@ -176,8 +175,8 @@ reduce(simplify, X ?= Y, P, Q) :-
         
         
 reduce(expand, X ?= Y, P, Q) :-
-        write("expand : "),
-        print(X ?= Y),
+        echo("expand : "),
+        echo(X ?= Y),
         nl,
         Q = P,
         X = Y,
@@ -185,16 +184,16 @@ reduce(expand, X ?= Y, P, Q) :-
         
         
 reduce(orient, X ?= Y, P, Q) :-
-        write("orient : "),
-        print(X ?= Y),
+        echo("orient : "),
+        echo(X ?= Y),
         nl,
         append(P, [Y ?=X], Q),
         !.
         
         
 reduce(decompose, X ?= Y, P, Q) :-
-        write("decompose : "),
-        print(X ?= Y),
+        echo("decompose : "),
+        echo(X ?= Y),
         nl,
         functor(X,_,A),
         decomposition(X,Y,A,R),
@@ -203,8 +202,8 @@ reduce(decompose, X ?= Y, P, Q) :-
         
         
 reduce(clean, X ?= Y, P, Q) :-
-        write("clean : "),
-        print(X ?= Y),
+        echo("clean : "),
+        echo(X ?= Y),
         nl,
         Q = P,
         !.
@@ -250,8 +249,8 @@ où P est un système d’équations à résoudre représenté sous la forme d�
 
 % Unifie avec une stratégie de base : prendre les équations dans l'ordre de lecture de gauche à droite.
 choix_premier([X|T]) :-
-         write("system : "),
-        print([X|T]),
+        echo("system : "),
+        echo([X|T]),
         nl,
         rule(X, R),
         reduce(R, X, T, Q),
@@ -274,6 +273,9 @@ weight(expand,1).
 
 
 choix_pondere(X) :-
+        echo("system : "),
+        echo(X),
+        echo('\n'),
         maxWeight(X, R, E),
 	extract(X, E, Res),
 	reduce(R, E, Res, Q),
@@ -325,23 +327,21 @@ extract([],_,[]) :-
         !.
 
 %/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-%DESACTIVATION DE LA TRACE
+%ACTIVATION DE LA TRACE
 trace_unif(P,Strategie) :-
         set_echo,
 	unifie(P,Strategie),
-	clr_echo,
 	!.
-%ACTIVATION DE LA TRACE
+	
+%DESACTIVATION DE LA TRACE
 unif(P,Strategie) :-
         clr_echo,
-	unifie(P,Strategie),
-	clr_echo,
-	!.
+	unifie(P,Strategie).
 %Traitement choix user trace == non
 trace(SystEq,Strategie,Trace) :-
         Trace == oui,
-	trace_unif(SystEq,Strategie), 
-	!.
+	trace_unif(SystEq,Strategie).
+	
 %Traitement choix user trace == oui
 trace(SystEq,Strategie,Trace) :-
         Trace == non,
@@ -351,12 +351,12 @@ trace(SystEq,Strategie,Trace) :-
 
 
 run :-
-    echo('Programme réalisé par Antoine Courtil et Simon Hajek'),
-    echo('\nAlgorithme d’unification de Martelli-Montanari vu avec M. Galmiche'),
+    write('Programme réalisé par Antoine Courtil et Simon Hajek'),
+    write('\nAlgorithme d’unification de Martelli-Montanari vu avec M. Galmiche'),
     begin.
     
 begin:-
-        write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(Z,h(a)), Z ?= g(X)].\n\n'),
+        write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)].\n\n'),
 	write('>> Systeme d\'equation à unifier : '),
 	read(SystEq),
 	write('\n\nQuelle stratégie voulez-vous utiliser ? ( \'premier.\' OU \'pondere.\')\n'),
