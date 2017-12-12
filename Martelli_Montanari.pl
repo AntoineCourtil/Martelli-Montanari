@@ -2,6 +2,9 @@
 %Definition opérateur ?=
 :- op(20,xfy,?=).
 
+%Pour enlever les warning de Singleton variables
+:- style_check(-singleton).
+
 %Definition echo
 
 % Prédicats d'affichage fournis
@@ -240,8 +243,13 @@ unifie([X|T], Strategie) :-
         Strategie == pondere,
         choix_pondere([X|T]).
 
-%TODO TRAITER LE cas ou aucun choix n'est bon
-
+%TRAITER LE cas ou aucun choix n'est bon
+unifie([X|T], Strategie) :-
+        Strategie \== pondere,
+        Strategie \== premier,
+        write('\nStratégie invalide'),
+        strategie([X|T],Strategie,Trace).
+        
 /* Predicat unifie(P) :
 où P est un système d’équations à résoudre représenté sous la forme d’une liste [S1 ?= T1,...,SN ?= TN]. */
 
@@ -330,8 +338,7 @@ extract([],_,[]) :-
 %ACTIVATION DE LA TRACE
 trace_unif(P,Strategie) :-
         set_echo,
-	unifie(P,Strategie),
-	!.
+	unifie(P,Strategie).
 	
 %DESACTIVATION DE LA TRACE
 unif(P,Strategie) :-
@@ -345,29 +352,38 @@ trace(SystEq,Strategie,Trace) :-
 %Traitement choix user trace == oui
 trace(SystEq,Strategie,Trace) :-
         Trace == non,
-        unif(SystEq,Strategie),
-	!.
-%TODO MAUVAIS CHOIX
-
+        unif(SystEq,Strategie).
+%MAUVAIS CHOIX
+trace(SystEq,Strategie,Trace) :-
+        Trace \== non,
+        Trace \== oui,
+        write('Choix de la trace invalide\n'),
+        choixTrace(SystEq,Strategie,Trace).
 
 run :-
     write('Programme réalisé par Antoine Courtil et Simon Hajek'),
     write('\nAlgorithme d’unification de Martelli-Montanari vu avec M. Galmiche'),
     begin.
     
+strategie(SystEq,Strategie,Trace) :-
+        write('\n\nQuelle stratégie voulez-vous utiliser ? ( \'premier.\' OU \'pondere.\')\n'),
+	write('>> Stratégie : '),
+	read(Strategie),
+	%write('cc'),
+	choixTrace(SystEq,Strategie,Trace).
+	
+choixTrace(SystEq,Strategie,Trace) :-
+write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
+	write('>> Trace : '),
+	read(Trace),
+	write('\n'),
+	lancementAlgo(SystEq,Strategie,Trace).
+	
+lancementAlgo(SystEq,Strategie,Trace) :-
+        trace(SystEq,Strategie,Trace).
 begin:-
         write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)].\n\n'),
 	write('>> Systeme d\'equation à unifier : '),
 	read(SystEq),
-	write('\n\nQuelle stratégie voulez-vous utiliser ? ( \'premier.\' OU \'pondere.\')\n'),
-	write('>> Stratégie : '),
-	read(Strategie),
-	%write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
-	%write('>> Trace : '),
-	%read(Trace),
-	write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
-	write('>> Trace : '),
-	read(Trace),
-	write('\n'),
-	trace(SystEq,Strategie,Trace),
-	!.
+	strategie(SystEq,Strategie,Trace).
+	
