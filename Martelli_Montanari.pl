@@ -7,12 +7,12 @@
 
 %Definition echo
 
-% Prédicats d'affichage fournis
+% Prédicats d affichage fournis
 
-% set_echo: ce prédicat active l'affichage par le prédicat echo
+% set_echo: ce prédicat active l affichage par le prédicat echo
 set_echo :- assert(echo_on).
 
-% clr_echo: ce prédicat inhibe l'affichage par le prédicat echo
+% clr_echo: ce prédicat inhibe l affichage par le prédicat echo
 clr_echo :- retractall(echo_on).
 
 % echo(T): si le flag echo_on est positionné, echo(T) affiche le terme T
@@ -29,15 +29,15 @@ echo(_).
 
 % PREDICATS
 
-% rule(E,R) : détermine la règle de transformation R qui s’applique à l’équation E, par exemple, le but ?- rule(f(a) ?= f(b),decompose) réussit.
+% rule(E,R) : détermine la règle de transformation R qui s applique à l équation E, par exemple, le but ?- rule(f(a) ?= f(b),decompose) réussit.
 % occur_check(V,T) : teste si la variable V apparaît dans le terme T.
-% reduct(R,E,P,Q) : transforme le système d’équations P en le système d’équations Q par application de la règle de transformation R à l’équation E.
+% reduct(R,E,P,Q) : transforme le système d’équations P en le système d équations Q par application de la règle de transformation R à l’équation E.
 
 
 %/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Le predicat rule :
-Détermine la règle de transformation R qui s’applique à l’équation E, par exemple, le but ?- rule(f(a) ?= f(b),decompose) réussit. */
+Détermine la règle de transformation R qui s applique à l équation E, par exemple, le but ?- rule(f(a) ?= f(b),decompose) réussit. */
 
 
 rule(X ?= Y, rename) :- 
@@ -148,7 +148,7 @@ var_into_term(V, T, A) :-
         var_into_arg(V,X).
         
         
-% Cas d'arret
+% Cas d arret
 var_into_term(V, T, A) :-
         A \= 1,
         plus(A, -1, Y),
@@ -212,7 +212,7 @@ reduce(clean, X ?= Y, P, Q) :-
         !.
         
         
-% Décomposition des arguments d'une fonction en une liste d'équations
+% Décomposition des arguments d une fonction en une liste d équations
 decomposition(X, Y, N, Q) :-
         N \= 1,
         plus(N, -1, M),
@@ -222,7 +222,7 @@ decomposition(X, Y, N, Q) :-
         append([A ?= B],P, Q).
         
         
-% Cas d'arret
+% Cas d arret
 decomposition(X, Y, N, Q) :-
         N == 1,
         arg(N, X, A),
@@ -243,19 +243,19 @@ unifie([X|T], Strategie) :-
         Strategie == pondere,
         choix_pondere([X|T]).
 
-%TRAITER LE cas ou aucun choix n'est bon
+%TRAITER LE cas ou aucun choix n est bon
 unifie([X|T], Strategie) :-
         Strategie \== pondere,
         Strategie \== premier,
         write('\nStratégie invalide'),
-        strategie([X|T],Strategie,Trace).
+        readStrategie([X|T],Strategie,Trace).
         
 /* Predicat unifie(P) :
 où P est un système d’équations à résoudre représenté sous la forme d’une liste [S1 ?= T1,...,SN ?= TN]. */
 
 /************************************** STRATEGIE CHOIX PREMIER *************************************************/
 
-% Unifie avec une stratégie de base : prendre les équations dans l'ordre de lecture de gauche à droite.
+% Unifie avec une stratégie de base : prendre les équations dans l ordre de lecture de gauche à droite.
 choix_premier([X|T]) :-
         echo("system : "),
         echo([X|T]),
@@ -264,7 +264,7 @@ choix_premier([X|T]) :-
         reduce(R, X, T, Q),
         choix_premier(Q).
         
-% Cas d'arret
+% Cas d arret
 choix_premier([]) :-
 	write('Système d\'equation unifiable.'),
         !.
@@ -289,7 +289,7 @@ choix_pondere(X) :-
 	reduce(R, E, Res, Q),
 	choix_pondere(Q).
 
-%Cas d'arrêt
+%Cas d arrêt
 choix_pondere([]) :-
 	write('Système d\'equation unifiable.'),
 	!.
@@ -314,7 +314,7 @@ maxWeight([X,Y|P], R, E) :-
 	!,
 	maxWeight([Y|P], R, E).
 	
-%Cas d'arrêt
+%Cas d arrêt
 maxWeight([X], R, X) :-
         rule(X,R),
 	!.
@@ -330,11 +330,13 @@ extract([T|R],X,Res) :-
         X \== T,
         extract(R,X,Res).
 	
-%Cas d'arrêt
+%Cas d arrêt
 extract([],_,[]) :-
         !.
 
 %/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 %ACTIVATION DE LA TRACE
 trace_unif(P,Strategie) :-
         set_echo,
@@ -365,19 +367,24 @@ run :-
     write('\nAlgorithme d’unification de Martelli-Montanari vu avec M. Galmiche'),
     begin.
     
-strategie(SystEq,Strategie,Trace) :-
+    
+    
+readStrategie(SystEq,Strategie,Trace) :-
+        repeat,
         write('\n\nQuelle stratégie voulez-vous utiliser ? ( \'premier.\' OU \'pondere.\')\n'),
 	write('>> Stratégie : '),
 	read(Strategie),
-	%write('cc'),
-	choixTrace(SystEq,Strategie,Trace).
+	(Strategie == premier ; Strategie == pondere),
+	write(Strategie).
 	
 choixTrace(SystEq,Strategie,Trace) :-
-write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
+        repeat,
+        write('\n\nVoulez-vous activer la trace ? (Ecrire \'oui\' OU \'non\')\n'),
 	write('>> Trace : '),
 	read(Trace),
-	write('\n'),
-	lancementAlgo(SystEq,Strategie,Trace).
+	(Trace == oui ; Trace == non),
+	write(Trace),
+	write('\n').
 	
 lancementAlgo(SystEq,Strategie,Trace) :-
         trace(SystEq,Strategie,Trace).
@@ -385,5 +392,7 @@ begin:-
         write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)].\n\n'),
 	write('>> Systeme d\'equation à unifier : '),
 	read(SystEq),
-	strategie(SystEq,Strategie,Trace).
+	readStrategie(SystEq,Strategie,Trace),
+	choixTrace(SystEq,Strategie,Trace),
+	lancementAlgo(SystEq,Strategie,Trace).
 	
