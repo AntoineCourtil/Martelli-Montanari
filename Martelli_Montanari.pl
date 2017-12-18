@@ -466,12 +466,17 @@ run :-
           
         
 begin:-
+        repeat,
         write('\n\nEcrire le système que vous voulez unifier, par exemple : [f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)].\n\n'),
 	write('>> Systeme d\'equation à unifier : '),
 	read(SystEq),
 	readStrategie(SystEq,Strategie,Trace),
 	choixTrace(SystEq,Strategie,Trace),
-	lancementAlgo(SystEq,Strategie,Trace).
+	lancementAlgo(SystEq,Strategie,Trace),
+	write('\n\n>> Recommencer ? oui | non '),
+	read(Recommencer),
+	(Recommencer == non),
+	!.
     
     
     
@@ -481,7 +486,8 @@ readStrategie(SystEq,Strategie,Trace) :-
 	write('>> Stratégie : '),
 	read(Strategie),
 	(Strategie == premier ; Strategie == pondere),
-	write(Strategie).
+	write(Strategie),
+	!.
 	
 	
 	
@@ -492,7 +498,8 @@ choixTrace(SystEq,Strategie,Trace) :-
 	read(Trace),
 	(Trace == oui ; Trace == non),
 	write(Trace),
-	write('\n').
+	write('\n'),
+	!.
 	
 	
 	
